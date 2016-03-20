@@ -2,7 +2,18 @@ web:
   image: nginx:1.8
   volumes:
    - ./webserver.conf:/etc/nginx/nginx.conf:ro
+   - /var/log/nginx
+  command: nginx -g "daemon off;" -c /etc/nginx/nginx.conf
+  expose:
+   - 80
+   - 443
+
 proxy:
   image: nginx:1.8
   volumes:
    - ./proxy.conf:/etc/nginx/nginx.conf:ro
+  links:
+   - web:web
+  expose:
+   - 80
+   - 443
