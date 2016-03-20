@@ -29,4 +29,5 @@ gatling:
   links:
    - web:web
    - proxy:proxy
-  command: sh -c "gatling.sh -sf /opt/gatling/user-files/simulations/ -m && sleep infinity"
+#to debug gatling container  command: sleep infinity
+  command: sh -c "gatling.sh -sf /opt/gatling/user-files/simulations/ -m && sleep infinity" #keeps container running for manual tests

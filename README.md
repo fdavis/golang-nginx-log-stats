@@ -6,7 +6,7 @@ docker-compose up -d
 docker-compose logs
 ```
 
-To send requests to the web server on the command line
+## To send requests to the web server on the command line
 
 Just attach to the gatling container and curl the web or proxy host. First find the container name using `docker-compose ps`
 
@@ -28,4 +28,13 @@ Its easier to run
 
 ```bash
 curl -sk https://192.168.99.100:32785 -H'X-Forwarded-For: 127.7.7.7,192.168.91.121'
+```
+
+
+## Testing changes
+
+After changing parts of this repo run the following to try it out
+
+```bash
+docker-compose stop; docker-compose rm -f; docker-compose up -d; docker-compose logs
 ```
