@@ -4,10 +4,13 @@ web:
    - ./web/nginx.conf:/etc/nginx/nginx.conf:ro
    - ./web/nginx.conf.d:/etc/nginx/conf.d:ro
    - ./web/docroot:/usr/share/nginx/html:ro
+   - ./ssl/www.example.com.crt:/etc/nginx/www.example.com.crt:ro
+   - ./ssl/www.example.com.key:/etc/nginx/www.example.com.key:ro
    - /var/log/nginx
   command: nginx -g "daemon off;" -c /etc/nginx/nginx.conf
   ports:
    - 80
+   - 443
 
 proxy:
   image: nginx:alpine
@@ -17,3 +20,13 @@ proxy:
    - web:web
   ports:
    - 80
+
+gatling:
+  image: denvazh/gatling:2.1.7
+  volumes:
+   - ./gatling/simulations:/opt/gatling/user-files/simulations:ro
+   - ./gatling/results:/opt/gatling/results
+  links:
+   - web:web
+   - proxy:proxy
+  command: sh -c "gatling.sh -sf /opt/gatling/user-files/simulations/ -m && sleep infinity"
