@@ -1,5 +1,5 @@
 web:
-  image: nginx:1.8
+  image: nginx:1.9
   volumes:
    - ./webserver.conf:/etc/nginx/nginx.conf:ro
    - /var/log/nginx
@@ -9,7 +9,7 @@ web:
    - 443
 
 proxy:
-  image: nginx:1.8
+  image: nginx:1.9
   volumes:
    - ./proxy.conf:/etc/nginx/nginx.conf:ro
   links:
