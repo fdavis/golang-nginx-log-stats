@@ -1,0 +1,8 @@
+web:
+  image: nginx:1.8
+  volumes:
+   - ./webserver.conf:/etc/nginx/nginx.conf:ro
+proxy:
+  image: nginx:1.8
+  volumes:
+   - ./proxy.conf:/etc/nginx/nginx.conf:ro
