@@ -53,14 +53,14 @@ func (stats *HttpStats) showStats() string {
 	return retStr
 }
 
-func parseLine(line string) map[string]string {
+func ParseLine(line string) map[string]string {
 	ret := make(map[string]string)
 	// regex throws away first part of log until the request
 	// save request route and
 	regex := regexp.MustCompile(`[a-zA-Z0-9 /:,.+\[\]-]+"[A-Z]+ ([a-z0-9()+,\-.:=@;$_!*'%/?#]+) HTTP/1.[01]" ([0-9]{3})`)
 	matches := regex.FindStringSubmatch(line)
-	ret[KEY_STATUS_CODE] = matches[1]
-	ret[KEY_STATUS_ROUTE] = matches[2]
+	ret[KEY_STATUS_ROUTE] = matches[1]
+	ret[KEY_STATUS_CODE] = matches[2]
 	return ret
 }
 
@@ -74,7 +74,7 @@ func parseLogs(logFile string, stats *HttpStats, logPosition int64) int64 {
 	line, isPrefix, err := r.ReadLine()
 	for err == nil && !isPrefix {
 		s := string(line)
-		result := parseLine(s)
+		result := ParseLine(s)
 		fmt.Println(result)
 		stats.update(result)
 		fmt.Println(stats.showStats())

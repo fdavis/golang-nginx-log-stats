@@ -1,6 +1,7 @@
 package golangstats
 
 import "testing"
+import golangstats "."
 
 //import (
 //
@@ -26,9 +27,9 @@ func TestParseLine(t *testing.T) {
 		{testCase3[0], testCase3[1], testCase3[2]},
 	}
 	for _, c := range cases {
-		got := golangstats.parseLine(c.in)
+		got := golangstats.ParseLine(c.in)
 		if got[golangstats.KEY_STATUS_CODE] != c.want_code || got[golangstats.KEY_STATUS_ROUTE] != c.want_route {
-			t.Errorf("parseLine(%s) == %v\nwant status $d, route %s", c.in, got, c.want_code, c.want_route)
+			t.Errorf("ParseLine(%s)\nyields %v\nwant status %d, route %s", c.in, got, c.want_code, c.want_route)
 		}
 	}
 }
