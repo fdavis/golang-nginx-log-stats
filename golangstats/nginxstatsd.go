@@ -1,17 +1,20 @@
-package main
+package golangstats
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
+	"regexp"
+	"strconv"
 	"time"
 )
 
 const (
-	KEY_STATUS_CODE = "status_code"
-	KEY_STATUS_URI  = "request_uri"
+	KEY_STATUS_CODE  = "status_code"
+	KEY_STATUS_ROUTE = "request_route"
 )
 
 type HttpStats struct {
@@ -24,8 +27,9 @@ func (stats *HttpStats) clear() {
 	stats.errorUrls = make(map[string]int)
 }
 
-func (stats *HttpStats, m map[string]string) update() {
-	status_code := int(m[KEY_STATUS_CODE])
+func (stats *HttpStats) update(m map[string]string) {
+	status_code, err := strconv.Atoi(m[KEY_STATUS_CODE])
+	check(err)
 	if status_code >= 200 && status_code <= 299 {
 		stats.twoHundreds++
 	} else if status_code >= 300 && status_code <= 399 {
@@ -34,7 +38,7 @@ func (stats *HttpStats, m map[string]string) update() {
 		stats.fourHundreds++
 	} else if status_code >= 500 && status_code <= 599 {
 		stats.fiveHundreds++
-		stats.errorUrls[m[KEY_STATUS_URI]]++
+		stats.errorUrls[m[KEY_STATUS_ROUTE]]++
 	}
 }
 
@@ -43,23 +47,29 @@ func (stats *HttpStats) showStats() string {
 		fmt.Sprintf("40x:%d|s\n", stats.fourHundreds) +
 		fmt.Sprintf("30x:%d|s\n", stats.threeHundreds) +
 		fmt.Sprintf("20x:%d|s\n", stats.twoHundreds)
-	for url, count := range m {
-		retStr += fmt.Sprintf("%s:%d|s\n", url, count)
+	for route, count := range stats.errorUrls {
+		retStr += fmt.Sprintf("%s:%d|s\n", route, count)
 	}
 	return retStr
 }
 
 func parseLine(line string) map[string]string {
 	ret := make(map[string]string)
+	// regex throws away first part of log until the request
+	// save request route and
+	regex := regexp.MustCompile(`[a-zA-Z0-9 /:,.+\[\]-]+"[A-Z]+ ([a-z0-9()+,\-.:=@;$_!*'%/?#]+) HTTP/1.[01]" ([0-9]{3})`)
+	matches := regex.FindStringSubmatch(line)
+	ret[KEY_STATUS_CODE] = matches[1]
+	ret[KEY_STATUS_ROUTE] = matches[2]
 	return ret
 }
 
-func parseLogs(logFile string, stats *HttpStats, logPosition int64) {
+func parseLogs(logFile string, stats *HttpStats, logPosition int64) int64 {
 	f, err := os.Open(logFile)
 	check(err)
 	defer f.Close()
 
-	f.seek(logPosition, os.SEEK_SET)
+	f.Seek(logPosition, os.SEEK_SET)
 	r := bufio.NewReaderSize(f, 4*1024)
 	line, isPrefix, err := r.ReadLine()
 	for err == nil && !isPrefix {
@@ -72,14 +82,14 @@ func parseLogs(logFile string, stats *HttpStats, logPosition int64) {
 	}
 
 	if isPrefix {
-		fmt.Println("buffer size too small")
-		return
+		panic(errors.New("buffer size too small"))
 	}
 	if err != io.EOF {
-		fmt.Println(err)
-		return
+		panic(err)
 	}
-	return f.seek(logPosition, os.SEEK_SET)
+	ret, err := f.Seek(logPosition, os.SEEK_SET)
+	check(err)
+	return ret
 }
 
 func check(e error) bool {
@@ -106,6 +116,7 @@ func main() {
 			var logPosition int64 = 0
 			for t := range ticker.C {
 				fmt.Println("Tick at", t)
+				logPosition = parseLogs(*logFilename, &myStats, logPosition)
 			}
 		}()
 		// wait forever
