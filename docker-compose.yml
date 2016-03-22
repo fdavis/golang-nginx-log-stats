@@ -1,3 +1,4 @@
+# nginx host so we can create live log source
 web:
   image: nginx:alpine
   volumes:
@@ -12,6 +13,8 @@ web:
    - 80
    - 443
 
+# dump tcp proxy, changes $remote_addr on nginx logs
+# gatling tests randomly select between web and proxy
 proxy:
   image: nginx:alpine
   volumes:
@@ -21,6 +24,7 @@ proxy:
   ports:
    - 80
 
+# runs a defined simulation to create live logs on the nginx server
 gatling:
   image: denvazh/gatling:2.1.7
   volumes:
@@ -32,6 +36,7 @@ gatling:
 #to debug gatling container  command: sleep infinity
   command: sh -c "gatling.sh -sf /opt/gatling/user-files/simulations/ -m && sleep infinity" #keeps container running for manual tests
 
+# lets us graph the statsd metric
 statsd:
   image: kamon/grafana_graphite
   ports:
@@ -40,6 +45,7 @@ statsd:
    - 8125
    - 8126
 
+# runs the golang program to watch the nginx log file
 nginxstats:
   image: golang:alpine
   volumes_from:
@@ -48,3 +54,5 @@ nginxstats:
   volumes:
    - ./golangstats:/go:ro
   command: go run /go/nginxstats.go
+  links:
+   - statsd:statsd
