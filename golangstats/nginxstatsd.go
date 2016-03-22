@@ -32,6 +32,7 @@ func check(e error) bool {
 	return true
 }
 
+// Http stats counter type with helper functions
 type HttpStats struct {
 	fiveHundreds, fourHundreds, threeHundreds, twoHundreds int
 	errorUrls                                              map[string]int
@@ -68,17 +69,23 @@ func (stats *HttpStats) showStats() string {
 	return retStr
 }
 
-func ParseLine(line string) map[string]string {
+// regex extract stats code and request route
+func ParseLine(line string) (map[string]string, error) {
 	ret := make(map[string]string)
-	// regex throws away first part of log until the request
-	// save request route and
+	// regex throws away first part of log until the request and ignores everything past status code
+	// save request route and status code
 	regex := regexp.MustCompile(`[a-zA-Z0-9 /:,.+\[\]-]+"[A-Z]+ ([a-z0-9()+,\-.:=@;$_!*'%/?#]+) HTTP/1.[01]" ([0-9]{3})`)
 	matches := regex.FindStringSubmatch(line)
+	if matches == nil {
+		debugOut(fmt.Sprintf("Could not match log line: %s\n", line))
+		return ret, errors.New("skipping line: regex parse log line failed")
+	}
 	ret[KEY_STATUS_ROUTE] = matches[1]
 	ret[KEY_STATUS_CODE] = matches[2]
-	return ret
+	return ret, nil
 }
 
+// read to end of nginx log file and return the offset
 func parseLogs(logFile string, stats *HttpStats, logPosition int64) int64 {
 	f, err := os.Open(logFile)
 	check(err)
@@ -87,12 +94,17 @@ func parseLogs(logFile string, stats *HttpStats, logPosition int64) int64 {
 	f.Seek(logPosition, os.SEEK_SET)
 	r := bufio.NewReaderSize(f, 4*1024)
 	line, isPrefix, err := r.ReadLine()
+	// todo test moving update into for loop
 	for err == nil && !isPrefix {
 		s := string(line)
-		result := ParseLine(s)
-		debugOut(fmt.Sprintln(result))
-		stats.update(result)
-		debugOut(fmt.Sprintln(stats.showStats()))
+		var result map[string]string
+		var parseErr error
+		result, parseErr = ParseLine(s)
+		if parseErr == nil {
+			debugOut(fmt.Sprintln(result))
+			stats.update(result)
+			debugOut(fmt.Sprintln(stats.showStats()))
+		}
 		line, isPrefix, err = r.ReadLine()
 	}
 
@@ -132,6 +144,7 @@ func main() {
 				debugOut(fmt.Sprintln("Tick at", t))
 				logPosition = parseLogs(*inputLogFilename, &myStats, logPosition)
 				statsFile.WriteString(myStats.showStats())
+				myStats.clear()
 			}
 		}()
 		// wait forever
