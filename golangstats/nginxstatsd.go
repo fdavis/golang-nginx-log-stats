@@ -1,4 +1,4 @@
-package golangstats
+package main
 
 import (
 	"bufio"
@@ -16,6 +16,21 @@ const (
 	KEY_STATUS_CODE  = "status_code"
 	KEY_STATUS_ROUTE = "request_route"
 )
+
+var debug bool = false
+
+func debugOut(s string) {
+	if debug {
+		fmt.Println(s)
+	}
+}
+
+func check(e error) bool {
+	if e != nil {
+		panic(e)
+	}
+	return true
+}
 
 type HttpStats struct {
 	fiveHundreds, fourHundreds, threeHundreds, twoHundreds int
@@ -75,9 +90,9 @@ func parseLogs(logFile string, stats *HttpStats, logPosition int64) int64 {
 	for err == nil && !isPrefix {
 		s := string(line)
 		result := ParseLine(s)
-		fmt.Println(result)
+		debugOut(fmt.Sprintln(result))
 		stats.update(result)
-		fmt.Println(stats.showStats())
+		debugOut(fmt.Sprintln(stats.showStats()))
 		line, isPrefix, err = r.ReadLine()
 	}
 
@@ -92,37 +107,36 @@ func parseLogs(logFile string, stats *HttpStats, logPosition int64) int64 {
 	return ret
 }
 
-func check(e error) bool {
-	if e != nil {
-		panic(e)
-	}
-	return true
-}
-
 func main() {
 	poll := flag.Bool("poll", true, "if set keep running in the foreground else parse once and quit")
-	logFilename := flag.String("logFilename", "/var/log/nginx/access.log", "default access.log file to parse: /var/log/nginx/access.log")
-	//	statsFilename := flag.String("statsfilename", "/var/log/stats.log", "default stats.log to write to: /var/log/stats.log")
+	flag.BoolVar(&debug, "debug", false, "if set log more verboseley")
+	inputLogFilename := flag.String("inputLogFilename", "/var/log/nginx/access.log", "default access.log file to parse: /var/log/nginx/access.log")
+	// outputLogFilename := flag.String("outputLogFilename", "nginxstats.log", "default log destination file: nginxstats.log")
+	statsFilename := flag.String("statsfilename", "/var/log/stats.log", "default stats.log to write to: /var/log/stats.log")
 
 	flag.Parse()
 
 	var myStats HttpStats
 	myStats.clear()
 
-	fmt.Println("poll var:", *poll)
 	if *poll {
 		ticker := time.NewTicker(time.Second * 5)
 		go func() {
 			var logPosition int64 = 0
+			// todo, should open source log file here, otherwise if log rotates we will seek past the end of file
+			statsFile, err := os.OpenFile(*statsFilename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+			check(err)
+			defer statsFile.Close()
 			for t := range ticker.C {
-				fmt.Println("Tick at", t)
-				logPosition = parseLogs(*logFilename, &myStats, logPosition)
+				debugOut(fmt.Sprintln("Tick at", t))
+				logPosition = parseLogs(*inputLogFilename, &myStats, logPosition)
+				statsFile.WriteString(myStats.showStats())
 			}
 		}()
 		// wait forever
 		select {}
 	} else {
-		parseLogs(*logFilename, &myStats, 0)
-		fmt.Printf(myStats.showStats())
+		parseLogs(*inputLogFilename, &myStats, 0)
+		debugOut(fmt.Sprintf(myStats.showStats()))
 	}
 }

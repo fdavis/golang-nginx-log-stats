@@ -1,4 +1,4 @@
-package golangstats
+package main
 
 import "testing"
 import golangstats "."
