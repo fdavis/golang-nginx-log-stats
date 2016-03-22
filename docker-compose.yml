@@ -35,12 +35,13 @@ gatling:
    - web:web
    - proxy:proxy
   # keep container running for manual tests it also avoids issue where containers close if run in foreground
-  # sleep 2s upfront to avoid getting too much of the tests up front
-  command: sh -c "sleep 2s && gatling.sh -sf /opt/gatling/user-files/simulations/ -m && sleep infinity"
+  # sleep upfront to give a chance for the rest of the services to initialize
+  command: sh -c "sleep 5s && gatling.sh -sf /opt/gatling/user-files/simulations/ -m && sleep infinity"
 #to debug gatling container  command: sleep infinity
 
 # lets us graph the statsd metric
 # fixme: add graphite source by default https://github.com/grafana/grafana/issues/1789
+# preferably with some default dashboard for the 5 stats
 statsd:
   image: kamon/grafana_graphite
   ports:
@@ -56,8 +57,10 @@ nginxstats:
    - web
   volumes:
    - ./golangstats:/go:ro
-  command: go run /go/nginxstatsd.go -publishStatsd
+  command: go run /go/nginxstatsd.go -publishStatsd -debug
   links:
    - statsd:statsd
+  # go tries to run its own nslookup which will bypass /etc/hosts
+  # force it to use cgo so it finds the statsd address defined by docker
   environment:
    - GODEBUG=netdns=cgo
