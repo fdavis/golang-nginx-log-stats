@@ -18,36 +18,31 @@ class MyStatusCodeSim extends Simulation {
 
   // A scenario to help verify golang stats
   val scn = scenario("Test Status Codes")
-    .during(5 seconds) {
-        exec(http("request_1")
-            .get("/")
-            .check(status.in(Seq(200,304))))
-        .pause(100 milliseconds)
-    }
-// leaving redirects alone, they keep getting 404s
-//    .during(1 seconds) {
-//        exec(http("request_2")
-//            .get("/302mepls")
-//            .check(status.in(Seq(302,304))))
-//        .pause(100 milliseconds)
-//    }
-    .during(5 seconds) {
-        exec(http("request_3")
-            .get("/403mepls")
-            .check(status.is(403)))
-        .pause(100 milliseconds)
-    }
-    .during(5 seconds) {
-        exec(http("request_4")
-            .get("/404mepls")
-            .check(status.is(404)))
-        .pause(100 milliseconds)
-    }
-    .during(5 seconds) {
-        exec(http("request_5")
-            .get("/500mepls")
-            .check(status.is(500)))
-        .pause(100 milliseconds)
+    .repeat(5) {
+        during(10 seconds) {
+            exec(http("request_1")
+                .get("/")
+                .check(status.in(Seq(200,304))))
+            .pause(100 milliseconds)
+        }
+        .during(10 seconds) {
+            exec(http("request_3")
+                .get("/403mepls")
+                .check(status.is(403)))
+            .pause(100 milliseconds)
+        }
+        .during(10 seconds) {
+            exec(http("request_4")
+                .get("/404mepls")
+                .check(status.is(404)))
+            .pause(100 milliseconds)
+        }
+        .during(10 seconds) {
+            exec(http("request_5")
+                .get("/500mepls")
+                .check(status.is(500)))
+            .pause(100 milliseconds)
+        }
     }
 
   setUp(scn.inject(atOnceUsers(2)).protocols(httpConf)) //.throttle(reachRps(10) in (0.2 seconds))
