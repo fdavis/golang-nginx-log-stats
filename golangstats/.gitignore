@@ -1,3 +1,4 @@
 sample.log
-sample.log.gz
+sample.log.*
 test_stats_out.log
+stats.log
