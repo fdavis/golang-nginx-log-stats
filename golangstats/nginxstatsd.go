@@ -16,7 +16,7 @@ import (
 const (
 	KEY_STATUS_CODE  = "status_code"
 	KEY_STATUS_ROUTE = "request_route"
-	PARSE_REGEX      = `[a-zA-Z0-9 /:,.+\[\]-]+"[A-Z]+ ([a-zA-Z0-9()+,\-.:=@;$_!*'%/?#]+) HTTP/1.[01]" ([0-9]{3})`
+	PARSE_REGEX      = `[a-zA-Z0-9 /:,.+\[\]-]+"[A-Z]+ ([a-zA-Z0-9()+,\-.:=@;$_!*'%/?#&]+) HTTP/1.[01]" ([0-9]{3})`
 	MAX_LINE_LENGTH  = 4 * 1024
 )
 
