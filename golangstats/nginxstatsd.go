@@ -151,7 +151,7 @@ func main() {
 			check(err)
 			defer f.Close()
 			for t := range ticker.C {
-				debugOut(fmt.Sprintf("Tick at: %v", t))
+				debugOut(fmt.Sprintf("Tick at: %v\n", t))
 				parseLogs(f, &myStats)
 				statsFile.WriteString(myStats.showStats())
 				if publishStatsd {
