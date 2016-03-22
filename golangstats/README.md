@@ -1,4 +1,16 @@
-## Example run showing tick times
+## Testing
+
+### testRun.sh
+
+This script runs the nginxstats.go program against test\_nginx\_access.log and compares the test\_stats\_expected.log file with the generated test\_stats\_out.log file.
+
+```bash
+testRun.sh
+```
+
+## using sample.log provided in instructions
+
+## Example run printing tick times, shows ~10ms jitter
 
 ```bash
 $ go run nginxstatsd.go 

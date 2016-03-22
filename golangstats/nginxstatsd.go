@@ -112,21 +112,22 @@ func main() {
 	flag.BoolVar(&debug, "debug", false, "if set log more verboseley")
 	inputLogFilename := flag.String("inputLogFilename", "/var/log/nginx/access.log", "default access.log file to parse: /var/log/nginx/access.log")
 	// outputLogFilename := flag.String("outputLogFilename", "nginxstats.log", "default log destination file: nginxstats.log")
-	statsFilename := flag.String("statsfilename", "/var/log/stats.log", "default stats.log to write to: /var/log/stats.log")
+	statsFilename := flag.String("statsFilename", "/var/log/stats.log", "default stats.log to write to: /var/log/stats.log")
 
 	flag.Parse()
 
 	var myStats HttpStats
 	myStats.clear()
 
+	statsFile, err := os.OpenFile(*statsFilename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	check(err)
+	defer statsFile.Close()
+
 	if *poll {
 		ticker := time.NewTicker(time.Second * 5)
 		go func() {
 			var logPosition int64 = 0
 			// todo, should open source log file here, otherwise if log rotates we will seek past the end of file
-			statsFile, err := os.OpenFile(*statsFilename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-			check(err)
-			defer statsFile.Close()
 			for t := range ticker.C {
 				debugOut(fmt.Sprintln("Tick at", t))
 				logPosition = parseLogs(*inputLogFilename, &myStats, logPosition)
@@ -138,5 +139,6 @@ func main() {
 	} else {
 		parseLogs(*inputLogFilename, &myStats, 0)
 		debugOut(fmt.Sprintf(myStats.showStats()))
+		statsFile.WriteString(myStats.showStats())
 	}
 }
