@@ -31,3 +31,20 @@ gatling:
    - proxy:proxy
 #to debug gatling container  command: sleep infinity
   command: sh -c "gatling.sh -sf /opt/gatling/user-files/simulations/ -m && sleep infinity" #keeps container running for manual tests
+
+statsd:
+  image: kamon/grafana_graphite
+  ports:
+   - 80
+   - 81
+   - 8125
+   - 8126
+
+nginxstats:
+  image: golang:alpine
+  volumes_from:
+   - web:ro
+   - statsd:ro
+  volumes:
+   - ./golangstats:/go:ro
+  command: go run /go/nginxstats.go
