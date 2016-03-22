@@ -42,9 +42,13 @@ docker-compose stop; docker-compose rm -f; docker-compose up -d; docker-compose 
 ## My setup
 
 ```bash
+OSX Yosemite 10.10.5
+
+installed go via homebrew
 $ go version
 go version go1.6 darwin/amd64
 
+installed docker via docker-tools using a VBox backed docker-machine
 $ docker info
 Containers: 95
 Images: 408
