@@ -57,7 +57,7 @@ nginxstats:
    - web
   volumes:
    - ./golangstats:/go:ro
-  command: go run /go/nginxstatsd.go -publishStatsd -debug
+  command: go run /go/nginxstatsd.go -publishStatsd
   links:
    - statsd:statsd
   # go tries to run its own nslookup which will bypass /etc/hosts
