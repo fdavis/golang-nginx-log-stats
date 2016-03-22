@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"regexp"
 	"strconv"
@@ -15,11 +16,12 @@ import (
 const (
 	KEY_STATUS_CODE  = "status_code"
 	KEY_STATUS_ROUTE = "request_route"
-	PARSE_REGEX      = `[a-zA-Z0-9 /:,.+\[\]-]+"[A-Z]+ ([a-z0-9()+,\-.:=@;$_!*'%/?#]+) HTTP/1.[01]" ([0-9]{3})`
+	PARSE_REGEX      = `[a-zA-Z0-9 /:,.+\[\]-]+"[A-Z]+ ([a-zA-Z0-9()+,\-.:=@;$_!*'%/?#]+) HTTP/1.[01]" ([0-9]{3})`
 	MAX_LINE_LENGTH  = 4 * 1024
 )
 
 var debug bool = false
+var publishStatsd bool = false
 
 func debugOut(s string) {
 	if debug {
@@ -71,6 +73,15 @@ func (stats *HttpStats) showStats() string {
 	return retStr
 }
 
+func sendStatsd(s string) {
+	conn, err := net.Dial("tcp", "statsd:8125")
+	if err != nil {
+		fmt.Println("Could not connect to statsd host")
+		return
+	}
+	fmt.Fprintf(conn, s)
+}
+
 // regex extract stats code and request route
 func ParseLine(line string) (map[string]string, error) {
 	ret := make(map[string]string)
@@ -116,6 +127,7 @@ func parseLogs(f *os.File, stats *HttpStats) {
 func main() {
 	poll := flag.Bool("poll", true, "if set keep running in the foreground else parse once and quit")
 	flag.BoolVar(&debug, "debug", false, "if set log more verboseley")
+	flag.BoolVar(&publishStatsd, "publishStatsd", false, "if set send metrics to host statsd on port 8125")
 	inputLogFilename := flag.String("inputLogFilename", "/var/log/nginx/access.log",
 		"default access.log file to parse: /var/log/nginx/access.log")
 	// outputLogFilename := flag.String("outputLogFilename", "nginxstats.log",
@@ -142,17 +154,24 @@ func main() {
 				debugOut(fmt.Sprintf("Tick at: %v", t))
 				parseLogs(f, &myStats)
 				statsFile.WriteString(myStats.showStats())
+				if publishStatsd {
+					sendStatsd(myStats.showStats())
+				}
 				myStats.clear()
 			}
 		}()
 		// wait forever
 		select {}
 	} else {
+		// todo: DRY this block
 		f, err := os.Open(*inputLogFilename)
 		check(err)
 		defer f.Close()
 		parseLogs(f, &myStats)
 		debugOut(fmt.Sprintf(myStats.showStats()))
 		statsFile.WriteString(myStats.showStats())
+		if publishStatsd {
+			sendStatsd(myStats.showStats())
+		}
 	}
 }
