@@ -8,7 +8,8 @@ web:
    - ./ssl/www.example.com.crt:/etc/nginx/www.example.com.crt:ro
    - ./ssl/www.example.com.key:/etc/nginx/www.example.com.key:ro
    - /var/log/nginx
-  command: nginx -g "daemon off;" -c /etc/nginx/nginx.conf
+  # remove access.log symlink to stdout so we can parse on the backend
+  command: sh -c "unlink /var/log/nginx/access.log && nginx -g \"daemon off;\" -c /etc/nginx/nginx.conf"
   ports:
    - 80
    - 443
@@ -33,8 +34,9 @@ gatling:
   links:
    - web:web
    - proxy:proxy
+  # keep container running for manual tests, avoids issue where containers close if run in foreground
+  command: sh -c "gatling.sh -sf /opt/gatling/user-files/simulations/ -m && sleep infinity"
 #to debug gatling container  command: sleep infinity
-  command: sh -c "gatling.sh -sf /opt/gatling/user-files/simulations/ -m && sleep infinity" #keeps container running for manual tests
 
 # lets us graph the statsd metric
 statsd:
@@ -42,17 +44,18 @@ statsd:
   ports:
    - 80
    - 81
-   - 8125
+   - 8125/udp
    - 8126
 
 # runs the golang program to watch the nginx log file
 nginxstats:
   image: golang:alpine
   volumes_from:
-   - web:ro
-   - statsd:ro
+   - web
   volumes:
    - ./golangstats:/go:ro
-  command: go run /go/nginxstats.go
+  command: go run /go/nginxstatsd.go -publishStatsd -debug
   links:
    - statsd:statsd
+  environment:
+   - GODEBUG=netdns=cgo

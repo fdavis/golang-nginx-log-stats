@@ -74,7 +74,7 @@ func (stats *HttpStats) showStats() string {
 }
 
 func sendStatsd(s string) {
-	conn, err := net.Dial("tcp", "statsd:8125")
+	conn, err := net.Dial("udp", "statsd:8125")
 	if err != nil {
 		fmt.Println("Could not connect to statsd host")
 		return
