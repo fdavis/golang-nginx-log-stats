@@ -80,7 +80,7 @@ func ParseLine(line string) (map[string]string, error) {
 	matches := regex.FindStringSubmatch(line)
 	if matches == nil {
 		debugOut(fmt.Sprintf("Could not match log line: %s\n", line))
-		return ret, errors.New("skipping line: regex parse log line failed")
+		return ret, errors.New("regex parse failed, skipping line:" + line)
 	}
 	ret[KEY_STATUS_ROUTE] = matches[1]
 	ret[KEY_STATUS_CODE] = matches[2]
