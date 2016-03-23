@@ -1,5 +1,5 @@
 #!/bin/sh
-sleep 1s
+sleep 2s
 # load graphite data backend
 # https://github.com/grafana/grafana/issues/1789
 curl 'http://admin:admin@127.0.0.1:80/api/datasources' -X POST \
