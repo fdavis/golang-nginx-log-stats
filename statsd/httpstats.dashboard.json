@@ -1,9 +1,7 @@
 {
-  "id": 3,
   "title": "HTTP Status",
   "originalTitle": "HTTP Status",
   "tags": [],
-  "style": "dark",
   "timezone": "browser",
   "editable": true,
   "hideControls": false,
@@ -113,7 +111,7 @@
     }
   ],
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "templating": {
