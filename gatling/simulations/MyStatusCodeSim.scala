@@ -19,25 +19,25 @@ class MyStatusCodeSim extends Simulation {
   // A scenario to help verify golang stats
   val scn = scenario("Test Status Codes")
     .repeat(5) {
-        during(10 seconds) {
+        during(20 seconds) {
             exec(http("request_1")
                 .get("/")
                 .check(status.in(Seq(200,304))))
             .pause(100 milliseconds)
         }
-        .during(10 seconds) {
+        .during(20 seconds) {
             exec(http("request_3")
                 .get("/403mepls")
                 .check(status.is(403)))
             .pause(100 milliseconds)
         }
-        .during(10 seconds) {
+        .during(20 seconds) {
             exec(http("request_4")
                 .get("/404mepls")
                 .check(status.is(404)))
             .pause(100 milliseconds)
         }
-        .during(10 seconds) {
+        .during(20 seconds) {
             exec(http("request_5")
                 .get("/500mepls")
                 .check(status.is(500)))
