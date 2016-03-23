@@ -2,6 +2,7 @@
   "title": "HTTP Status",
   "originalTitle": "HTTP Status",
   "tags": [],
+  "style": "dark",
   "timezone": "browser",
   "editable": true,
   "hideControls": false,
@@ -55,7 +56,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "target": "stats.sets.*.count"
+              "target": "stats.counters.*.count"
             }
           ],
           "timeFrom": null,
@@ -121,6 +122,6 @@
     "list": []
   },
   "schemaVersion": 6,
-  "version": 1,
+  "version": 0,
   "links": []
 }

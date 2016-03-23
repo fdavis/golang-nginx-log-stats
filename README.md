@@ -21,6 +21,11 @@ docker-compose tears down the whole environment.
 1. Feel free to cause more results by visiting the web server (routes used in tests, /, /403mepls, /404mepls, /500mepls)
 1. Gatling will publish results of its tests when finished in a folder like this: gatling/results/mystatuscodesim-1458704153189/index.html
 
+
+Example grafana screen shot of script reporting during gatling.io tests (200 spike is me running `while :; do curl -Is 192.168.99.100:32811 > /dev/null; done` for a minute or so)
+
+[[https://github.com/fdavis/golang-nginx-log-stats/blob/master/img/grafana.png|alt=grafana screen shot]]
+
 ## Typical development cycle
 
 ```

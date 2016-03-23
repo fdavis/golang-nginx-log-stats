@@ -69,12 +69,12 @@ func (stats *HttpStats) showStats() string {
 		statsdType = "c"
 	}
 
-	retStr := fmt.Sprintf("50x:%d|%s\n", statsdType, stats.fiveHundreds) +
-		fmt.Sprintf("40x:%d|%s\n", statsdType, stats.fourHundreds) +
-		fmt.Sprintf("30x:%d|%s\n", statsdType, stats.threeHundreds) +
-		fmt.Sprintf("20x:%d|%s\n", statsdType, stats.twoHundreds)
+	retStr := fmt.Sprintf("50x:%d|%s\n", stats.fiveHundreds, statsdType) +
+		fmt.Sprintf("40x:%d|%s\n", stats.fourHundreds, statsdType) +
+		fmt.Sprintf("30x:%d|%s\n", stats.threeHundreds, statsdType) +
+		fmt.Sprintf("20x:%d|%s\n", stats.twoHundreds, statsdType)
 	for route, count := range stats.errorUrls {
-		retStr += fmt.Sprintf("%s:%d|%s\n", statsdType, route, count)
+		retStr += fmt.Sprintf("%s:%d|%s\n", route, count, statsdType)
 	}
 	return retStr
 }
