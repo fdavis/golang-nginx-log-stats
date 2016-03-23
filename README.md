@@ -1,9 +1,40 @@
 # golang-nginx-log-stats
 
-If you want the daemons to keep running you have to run docker-compose in the background and view the logs manually https://github.com/docker/compose/issues/1751
+This README.md is about the docker-compose environment. For the nginx parsing program please see the folder [golangstats](golangstats)
+
+## about
+
+This docker-compose environment starts an nginx web server, an nginx tcp proxy,
+a gatling test simulation, a golang nginx stats collector (this project), and
+a statsd/grafana/graphite container.
+
+## fire it up!
+
+Open up two terminals and a web browser
+
+1. In a terminal use `docker-compose up -d; docker-compose logs` to launch the containers,
+and follow the logs. docker-compose up may be sufficient but if any container (such as gatling.io) exits prematurely
+docker-compose tears down the whole environment.
+1. In the other terminal use `docker-compose ps` to get the forwarded ports for 80 on the statsd container and the web container
+1. Visit these in your browser (the ip you will need depends on your setup and where your docker-engine is running, if you are using docker-tools `docker-machine ls` should tell you the IP address otherwise you can use localhost on Linux)
+1. On Grafana login with the username and password admin (that's admin for both fields). Navigate to the "http status" dashboard to see the results of the program output to graphite
+1. Feel free to cause more results by visiting the web server (routes used in tests, /, /403mepls, /404mepls, /500mepls)
+1. Gatling will publish results of its tests when finished in a folder like this: gatling/results/mystatuscodesim-1458704153189/index.html
+
+## Typical development cycle
+
+```
+$ change something
+docker-compose stop # if comtainers already running
+docker-compose rm -fv # if containers already exist
+docker-compose up -d # allows your term to detach without stopping all containers
+docker-compose logs # allows you to keep tailing all the logs anyway
+```
+
+I like to make that workflow very accessible via shell alias
+
 ```bash
-docker-compose up -d
-docker-compose logs
+alias dcompcycle='docker-compose stop; docker-compose rm -fv; docker-compose up -d; docker-compose logs'
 ```
 
 ## To send requests to the web server on the command line
@@ -20,9 +51,6 @@ golangnginxlogstats_proxy_1     nginx -g daemon off;             Up       443/tc
 golangnginxlogstats_web_1       nginx -g daemon off; -c /e ...   Up       0.0.0.0:32783->443/tcp, 0.0.0.0:32784->80/tcp 
 ```
 
-Then 
-
-
 To create requests from your laptop to Nginx on the command line you first have to find the docker-engine host's IP address.
 Its easier to run 
 
@@ -30,16 +58,7 @@ Its easier to run
 curl -sk https://192.168.99.100:32785 -H'X-Forwarded-For: 127.7.7.7,192.168.91.121'
 ```
 
-
-## Testing changes
-
-After changing parts of this repo run the following to try it out
-
-```bash
-docker-compose stop; docker-compose rm -f; docker-compose up -d; docker-compose logs
-```
-
-## My setup
+## My installed versions
 
 ```bash
 OSX Yosemite 10.10.5
