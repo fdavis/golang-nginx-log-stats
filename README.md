@@ -24,7 +24,7 @@ docker-compose tears down the whole environment.
 
 Example grafana screen shot of script reporting during gatling.io tests (200 spike is me running `while :; do curl -Is 192.168.99.100:32811 > /dev/null; done` for a minute or so)
 
-[[https://github.com/fdavis/golang-nginx-log-stats/blob/master/img/grafana.png|alt=grafana screen shot]]
+![grafana screenshot](img/grafana.png?raw=true "Grafana In Action")
 
 ## Typical development cycle
 
