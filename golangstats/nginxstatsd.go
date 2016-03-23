@@ -21,6 +21,7 @@ const (
 )
 
 var debug bool = false
+var useStatsdSet bool = false
 var publishStatsd bool = false
 
 func debugOut(s string) {
@@ -63,12 +64,17 @@ func (stats *HttpStats) update(m map[string]string) {
 }
 
 func (stats *HttpStats) showStats() string {
-	retStr := fmt.Sprintf("50x:%d|s\n", stats.fiveHundreds) +
-		fmt.Sprintf("40x:%d|s\n", stats.fourHundreds) +
-		fmt.Sprintf("30x:%d|s\n", stats.threeHundreds) +
-		fmt.Sprintf("20x:%d|s\n", stats.twoHundreds)
+	statsdType := "s"
+	if !useStatsdSet {
+		statsdType = "c"
+	}
+
+	retStr := fmt.Sprintf("50x:%d|%s\n", statsdType, stats.fiveHundreds) +
+		fmt.Sprintf("40x:%d|%s\n", statsdType, stats.fourHundreds) +
+		fmt.Sprintf("30x:%d|%s\n", statsdType, stats.threeHundreds) +
+		fmt.Sprintf("20x:%d|%s\n", statsdType, stats.twoHundreds)
 	for route, count := range stats.errorUrls {
-		retStr += fmt.Sprintf("%s:%d|s\n", route, count)
+		retStr += fmt.Sprintf("%s:%d|%s\n", statsdType, route, count)
 	}
 	return retStr
 }
@@ -128,6 +134,7 @@ func main() {
 	poll := flag.Bool("poll", true, "if set keep running in the foreground else parse once and quit")
 	flag.BoolVar(&debug, "debug", false, "if set log more verboseley")
 	flag.BoolVar(&publishStatsd, "publishStatsd", false, "if set send metrics to host statsd on port 8125")
+	flag.BoolVar(&useStatsdSet, "useStatsdSet", true, "if set use statsd metrcis per spec, else use counter")
 	inputLogFilename := flag.String("inputLogFilename", "/var/log/nginx/access.log",
 		"default access.log file to parse: /var/log/nginx/access.log")
 	// outputLogFilename := flag.String("outputLogFilename", "nginxstats.log",
