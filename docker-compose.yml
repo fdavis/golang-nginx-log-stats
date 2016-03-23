@@ -40,10 +40,14 @@ gatling:
 #to debug gatling container  command: sleep infinity
 
 # lets us graph the statsd metric
-# fixme: add graphite source by default https://github.com/grafana/grafana/issues/1789
+# rely on supervisord to add graphite source on start https://github.com/grafana/grafana/issues/1789
 # preferably with some default dashboard for the 5 stats
 statsd:
   image: kamon/grafana_graphite
+  volumes:
+   - ./statsd/run_once.supervisord.conf:/etc/supervisor/conf.d/run_once.conf:ro
+   - ./statsd/set_graphite_datasource.sh:/root/set_graphite_datasource.sh:ro
+   - ./statsd/httpstats.dashboard.json:/src/dashboards/httpstats.json:ro
   ports:
    - 80
    - 81
