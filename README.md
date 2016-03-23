@@ -26,6 +26,14 @@ Example grafana screen shot of script reporting during gatling.io tests (200 spi
 
 ![grafana screenshot](img/grafana.png?raw=true "Grafana In Action")
 
+### Grafana
+
+If Grafana prints fake data for you you may have to add the Graphite Data Source. This is easiest by running the following command
+
+```
+docker exec -it golangnginxlogstats_statsd_1 sh /root/set_graphite_datasource.sh
+```
+
 ## Typical development cycle
 
 ```
